@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tierer - Tier List Generator</title>
+  <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+  <h1>Tierer</h1>
+
+  <div id="tier-canvas"></div>
+</body>
+
+<script>
+  const html = (strings, ...values) => String.raw({ raw: strings }, ...values);
+
+  const tiers = [
+    {name: 'S', color: '#ff7f7f', items: []},
+    {name: 'A', color: '#ffbf7f', items: []},
+    {name: 'B', color: '#ffdf7f', items: []},
+    {name: 'C', color: '#ffff7f', items: []},
+    {name: 'D', color: '#bfff7f', items: []},
+  ];
+
+  const d = document;
+
+  const renderTierList = () => {
+    const d = document;
+    const canvas = d.getElementById('tier-canvas');
+    let res = '';
+
+    tiers.forEach((tier, i) => {
+      res += html`<div class="tier">
+        <span class="tier-name" style="background-color: ${tier.color}">${tier.name}</span>
+        <span onclick="onButton(${i}, 'up')">up</span>
+        <span onclick="onButton(${i}, 'down')">down</span>
+      </div>`;
+    });
+
+    canvas.innerHTML = res;
+  }
+
+  const onButton = (id, direction) => {
+    const next_id = direction === 'up' ? id - 1 : id + 1;
+    if (next_id < 0) next_id = 0;
+    if (next_id > tiers.length - 1) next_id = tiers.length - 1;
+    const tmp = tiers[next_id];
+    tiers[next_id] = tiers[id];
+    tiers[id] = tmp;
+    renderTierList();
+  };
+
+  renderTierList();
+</script>
+
+</html>
