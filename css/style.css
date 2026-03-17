@@ -53,25 +53,58 @@ body {
 }
 
 .add-row-btn {
-  background-color: #b1b1b1;
-  border-radius: 5px;
   position: absolute;
   right: 51px;
   width: 16px;
   height: 16px;
+  bottom: -8px;
+  z-index: 20;
+}
+
+.button {
+  background-color: #b1b1b1;
+  border-radius: 5px;
   text-align: center;
   color: black;
   font-weight: 800;
-  bottom: -8px;
-  z-index: 20;
   cursor: pointer;
   user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.add-row-btn:hover {
+.button:hover {
   background-color: #848282;
 }
 
-.add-row-btn:active {
+.button:active {
   background-color: #747272;
+}
+
+#library {
+  margin-top: 20px;
+  border: 2px dashed white;
+  border-radius: 5px;;
+  padding: 30px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+#library-input {
+  display: none;
+}
+
+#library-input-label {
+  font-weight: 800;
+  font-size: 36px;
+  width: 70px;
+  height: 70px;
+}
+
+.item-image {
+  object-fit: cover;
+  width: 120px;
+  height: 120px;
 }

@@ -29,37 +29,102 @@ function getEl(id, type) {
  */
 const html = (strings, ...values) => String.raw({ raw: strings }, ...values);
 
-const tiers = new Proxy([
+/**
+ * @param {object|array} data
+ * @param {((event: Event) => void)|null} callback
+ */
+function react(data, callback = null) {
+  /**
+   * @param {'set'|'delete'} action
+   */
+  const emit = (action, detail = {}) => callback?.(
+    new CustomEvent(`signal:${action}`, {
+      bubbles: true,
+      detail: detail
+    }))
+
+  /** @param {object|array} data */
+  const handler = (data) => {
+    return {
+      /**
+       * @param {object|array} target
+       * @param {string} key
+       */
+      get(target, key) {
+        if (key === '_isProxy') {
+          return true;
+        }
+
+        const nested = ['[object Object]', '[object Array]'];
+        const type = Object.prototype.toString.call(target[key]);
+
+        if (nested.includes(type) && !target[key]._isProxy) {
+          target[key] = new Proxy(target[key], handler(data));
+        }
+
+        return target[key];
+      },
+
+      /**
+       * @param {object|array} target
+       * @param {string} key
+       * @param {any} value
+       */
+      set(target, key, value) {
+        if (target[key] === value) return true;
+        target[key] = value;
+        emit('set', { prop: key, value });
+        return true;
+      },
+
+      /**
+       * @param {object|array} target
+       * @param {string} key
+       */
+      deleteProperty(target, key) {
+        delete target[key];
+        emit('delete', { prop: key, value: target[key] });
+        return true;
+      }
+    };
+  };
+
+  return new Proxy(data, handler(data));
+}
+
+const tiers = react([
   { name: 'S', color: '#ff7f7f', items: [] },
   { name: 'A', color: '#ffbf7f', items: [] },
   { name: 'B', color: '#ffdf7f', items: [] },
   { name: 'C', color: '#bfff7f', items: [] },
   { name: 'D', color: '#7f7fff', items: [] },
-], {
-  set(obj, prop, value) {
-    const was = JSON.stringify(obj)
-    obj[prop] = value;
+], () => renderTierList());
 
-    if (JSON.stringify(obj) !== was) {
-      renderTierList();
-    }
+/**
+ * @type {File[]}
+ */
+const items = react([], () => renderItems());
 
-    return true;
-  },
-});
+/**
+ * @param {FileList} images
+ */
+const loadImages = (images) => {
+  const allowed = Array.from(images).filter((image) => image.type.startsWith("image/"))
+  items.push(...allowed);
+}
 
-const renderTierList = () => {
+function renderTierList() {
   const canvas = getEl('tier-canvas', HTMLDivElement);
   let res = '';
 
-  tiers.forEach((tier, i) => {
+  tiers.forEach((/** @type {{ color: any; name: any; }} */ tier, /** @type {any} */ i) => {
     res += html`
       <div class="tier">
         <input
           class="tier-name"
           style="background-color: ${tier.color}"
           value="${tier.name}"
-          onchange="tiers.at(${i}).name = event.target.value"/>
+          onchange="setTierName(event.target.value, ${i})"/>
 
         <div class="tier-main"></div>
 
@@ -69,7 +134,8 @@ const renderTierList = () => {
             <span onclick="onButton(${i}, 'down')">▼</span>
           </div>
         </div>
-        <div class="add-row-btn" title="Add another tier" onclick=tier_append(${i})>+</div>
+
+        <div class="button add-row-btn" title="Add another tier" onclick=tierAppend(${i})>+</div>
       </div>`;
   });
 
@@ -77,10 +143,18 @@ const renderTierList = () => {
 }
 
 /**
+ * @param {string} name
  * @param {number} idx
  */
-const tier_append = (idx) => {
-  tiers.splice(idx+1, 0, { name: "new", color: "#ffdf7f", items: []})
+const setTierName = (name, idx) => {
+  tiers[idx].name = name;
+}
+
+/**
+ * @param {number} idx
+ */
+const tierAppend = (idx) => {
+  tiers.splice(idx + 1, 0, { name: "new", color: "#ffdf7f", items: [] })
 }
 
 /**
@@ -96,4 +170,42 @@ const onButton = (id, direction) => {
   tiers[id] = tmp;
 };
 
+function getAddImageButton() {
+  return html`
+    <input id="library-input" type="file" accept="image/*" onchange="loadImages(event.target.files)">
+    <label for="library-input" id="library-input-label" class="button">
+      +
+    </label>
+  `;
+}
+
+function renderItems() {
+  const lib = getEl('library', HTMLDivElement);
+  let res = '';
+
+  if (items.length === 0) {
+    lib.innerHTML = getAddImageButton();
+    return;
+  }
+
+  let done = 0;
+
+  items.forEach((item) => {
+    const r = new FileReader();
+
+    r.onload = () => {
+      res += html`<img class="item-image" src="${r.result}">`;
+      done++;
+
+      if (done === items.length) {
+        res += getAddImageButton();
+        lib.innerHTML = res;
+      }
+    };
+
+    r.readAsDataURL(item);
+  });
+}
+
 renderTierList();
+renderItems();
