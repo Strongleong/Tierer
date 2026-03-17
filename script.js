@@ -29,13 +29,24 @@ function getEl(id, type) {
  */
 const html = (strings, ...values) => String.raw({ raw: strings }, ...values);
 
-const tiers = [
+const tiers = new Proxy([
   { name: 'S', color: '#ff7f7f', items: [] },
   { name: 'A', color: '#ffbf7f', items: [] },
   { name: 'B', color: '#ffdf7f', items: [] },
   { name: 'C', color: '#bfff7f', items: [] },
   { name: 'D', color: '#7f7fff', items: [] },
-];
+], {
+  set(obj, prop, value) {
+    const was = JSON.stringify(obj)
+    obj[prop] = value;
+
+    if (JSON.stringify(obj) !== was) {
+      renderTierList();
+    }
+
+    return true;
+  },
+});
 
 const renderTierList = () => {
   const canvas = getEl('tier-canvas', HTMLDivElement);
@@ -70,7 +81,6 @@ const renderTierList = () => {
  */
 const tier_append = (idx) => {
   tiers.splice(idx+1, 0, { name: "new", color: "#ffdf7f", items: []})
-  renderTierList();
 }
 
 /**
@@ -84,7 +94,6 @@ const onButton = (id, direction) => {
   const tmp = tiers[next_id];
   tiers[next_id] = tiers[id];
   tiers[id] = tmp;
-  renderTierList();
 };
 
 renderTierList();
