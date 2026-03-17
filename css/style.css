@@ -9,6 +9,7 @@ body {
   display: flex;
   text-align: center;
   align-items: center;
+  justify-content: space-between;
   background-color: #1a1a17;
   min-height: 80px;
 }
@@ -18,7 +19,34 @@ body {
   min-width: 100px;
   vertical-align: middle;
   line-height: 80px;
-  /* padding: 100%; */
   height: 100%;
   color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: none;
+  width: min-content;
+}
+
+.tier-buttons {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.tier-settings {
+  border-left: 1px solid black;
+  background-color: #545252;
+  min-width: 50px;
+  height:100%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tier-settings span:hover {
+  color: black;
+  cursor: pointer;
 }
