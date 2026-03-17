@@ -58,10 +58,19 @@ const renderTierList = () => {
             <span onclick="onButton(${i}, 'down')">▼</span>
           </div>
         </div>
+        <div class="add-row-btn" title="Add another tier" onclick=tier_append(${i})>+</div>
       </div>`;
   });
 
   canvas.innerHTML = res;
+}
+
+/**
+ * @param {number} idx
+ */
+const tier_append = (idx) => {
+  tiers.splice(idx+1, 0, { name: "new", color: "#ffdf7f", items: []})
+  renderTierList();
 }
 
 /**

@@ -4,6 +4,7 @@ body {
 }
 
 .tier {
+  position: relative;
   border: 1px solid black;
   height: 50px;
   display: flex;
@@ -49,4 +50,28 @@ body {
 .tier-settings span:hover {
   color: black;
   cursor: pointer;
+}
+
+.add-row-btn {
+  background-color: #b1b1b1;
+  border-radius: 5px;
+  position: absolute;
+  right: 51px;
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  color: black;
+  font-weight: 800;
+  bottom: -8px;
+  z-index: 20;
+  cursor: pointer;
+  user-select: none;
+}
+
+.add-row-btn:hover {
+  background-color: #848282;
+}
+
+.add-row-btn:active {
+  background-color: #747272;
 }
