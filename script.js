@@ -172,7 +172,7 @@ const onButton = (id, direction) => {
 
 function getAddImageButton() {
   return html`
-    <input id="library-input" type="file" accept="image/*" onchange="loadImages(event.target.files)">
+    <input id="library-input" type="file" accept="image/*" onchange="loadImages(event.target.files)" multiple>
     <label for="library-input" id="library-input-label" class="button">
       +
     </label>
