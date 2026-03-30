@@ -167,13 +167,69 @@ const tierMove = (id, direction) => {
   tiers[id] = tmp;
 };
 
+/** @type {number?} to_remove_idx */
+let to_remove_idx = null;
+
+/** @type {number|'library'?} to_remove_list */
+let to_remove_list = null;
+
 /**
  * @param {DragEvent} event
  * @param {number} i
  */
 const onTierDrop = (event, i) => {
   event.stopPropagation();
-  console.log(event);
+
+  if (!event.dataTransfer) {
+    return;
+  }
+
+  const img = event.dataTransfer.getData("text");
+  event.dataTransfer.dropEffect = 'move';
+
+  if (!img.startsWith("data:image/png;base64,")) {
+    return;
+  }
+
+  tiers[i].items.push(img);
+
+  if (to_remove_list === null || to_remove_idx === null) {
+    return;
+  }
+
+  if (to_remove_list === 'library') {
+    delete(items[to_remove_idx]);
+    return
+  }
+
+  delete tiers[to_remove_list].items[to_remove_idx];
+}
+
+/**
+ * @param {DragEvent} event
+ * @param {number|'library'} list
+ * @param {number} idx
+ */
+function imgOnDrag(event, list, idx) {
+  if (!event.dataTransfer) {
+    return;
+  }
+
+  if (list === 'library') {
+    event.dataTransfer.setData('text', items[idx]);
+  } else {
+    event.dataTransfer.setData('text', tiers[list].items[idx]);
+  }
+
+  to_remove_idx = idx;
+  to_remove_list = list;
+
+  event.dataTransfer.dropEffect = 'move';
+}
+
+/** @param {DragEvent} event */
+function onContainerDrop(event) {
+  event.stopPropagation();
 
   if (!event.dataTransfer) {
     return;
@@ -185,20 +241,18 @@ const onTierDrop = (event, i) => {
     return;
   }
 
-  tiers[i].items.push(img);
-}
+  items.push(img);
 
-/**
- * @param {DragEvent} event
- * @param {number?} i
- */
-function imgOnDrag(event, i) {
-  if (!i || !event.dataTransfer) {
+  if (to_remove_list === null || to_remove_idx === null) {
     return;
   }
 
-  event.dataTransfer.setData('text', items[i]);
-  event.dataTransfer.dropEffect = 'move';
+  if (to_remove_list === 'library') {
+    delete(items[to_remove_idx]);
+    return
+  }
+
+  delete tiers[to_remove_list].items[to_remove_idx];
 }
 
 /** @param {CustomEvent?} _event */
@@ -209,8 +263,8 @@ function renderTierList(_event = null) {
   tiers.map((tier, i) => {
     let itemsHtml = '';
 
-    tier.items.map((src) => {
-      itemsHtml += html`<img class="item-image" src="${src}" draggable="true">`;
+    tier.items.map((src, j) => {
+      itemsHtml += html`<img class="item-image" src="${src}" ondragstart="imgOnDrag(event, ${i}, ${j})" draggable="true">`;
     });
 
     res += html`
@@ -255,7 +309,11 @@ function getAddImageButton() {
 /** @param {CustomEvent?} _event */
 const renderLibrary = (_event = null) => {
   const lib = getEl("library", HTMLDivElement);
-  let res = '';
+  let res = html`<div
+    class="image-container"
+    ondrop="onContainerDrop(event)"
+    ondragover="event.preventDefault()"
+  >`;
 
   items.map((src, i) => {
     res += html`
@@ -263,13 +321,13 @@ const renderLibrary = (_event = null) => {
         class="item-image"
         src="${src}"
         draggable="true"
-        ondragstart="imgOnDrag(event, ${i})"
-        ondragend="imgOnDrag(event, null)"
+        ondragstart="imgOnDrag(event, 'library', ${i})"
       >
     `;
   });
 
   res += getAddImageButton();
+  res += html`</div>`;
   lib.innerHTML = res;
 }
 
